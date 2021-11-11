@@ -2,8 +2,9 @@ from collections.abc import MutableSequence
 
 
 class listpy(MutableSequence):
-    def __init__(self):
+    def __init__(self, iterable=(), /):
         self.inner = None
+        self.extend(iterable)
 
     def __len__(self):
         size = 0

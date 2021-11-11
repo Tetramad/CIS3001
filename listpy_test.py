@@ -146,3 +146,7 @@ class TestListpy(TestCase):
         self.assertEqual(len(obj), len(obj2))
         self.assertEqual(list(obj), list(obj2))
         '''
+
+    def test_listpy_iterable_initialize(self):
+        obj = listpy((1, 2, 3, 4))
+        self.assertSequenceEqual(obj, (1, 2, 3, 4))
