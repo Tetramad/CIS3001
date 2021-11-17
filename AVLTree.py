@@ -116,14 +116,14 @@ class AVLTreeNode:
             if self.lnode is not None:
                 self.lnode, result = self.lnode.delete(x)
                 self.height = self._calculate_height()
-                return self, result
+                return self.balance(), result
             else:
                 return self, False
         elif self.value < x:
             if self.rnode is not None:
                 self.rnode, result = self.rnode.delete(x)
                 self.height = self._calculate_height()
-                return self, result
+                return self.balance(), result
             else:
                 return self, False
         else:
@@ -162,7 +162,7 @@ class AVLTreeNode:
                     if self.rnode:
                         self.rnode.pnode = successor
                 successor.height = successor._calculate_height()
-                return successor, True
+                return successor.balance(), True
 
     def inorder(
             self,
