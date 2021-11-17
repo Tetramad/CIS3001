@@ -144,13 +144,17 @@ class AVLTreeNodeTest(TestCase):
         self.assertEqual(node.rnode.value, 2)
         self.assertIs(node.rnode.pnode, node)
         self.assertEqual(node.rnode.height, 1)
-        return
         node = self.build(AVLTreeNode.balanced_add, [0, 1, 2, 3, 4])
         self.assertEqual(node.value, 1)
+        self.assertEqual(node.height, 3)
         self.assertEqual(node.lnode.value, 0)
+        self.assertEqual(node.lnode.height, 1)
         self.assertEqual(node.rnode.value, 3)
+        self.assertEqual(node.rnode.height, 2)
         self.assertEqual(node.rnode.lnode.value, 2)
+        self.assertEqual(node.rnode.lnode.height, 1)
         self.assertEqual(node.rnode.rnode.value, 4)
+        self.assertEqual(node.rnode.rnode.height, 1)
 
     def test_finding_notfound(self):
         node = self.build(AVLTreeNode.balanced_add, [0, -1, 1])
@@ -202,6 +206,11 @@ class AVLTreeNodeTest(TestCase):
         node, _ = node.delete(-1)
         node, _ = node.delete(1)
         self.assertEqual(node.height, 1)
+        node = self.build(AVLTreeNode.balanced_add, [4, 1, 5, 0, 2, 6, 3])
+        node, result = node.delete(6)
+        self.assertTrue(result)
+        for factor in node.inorder(lambda x: x._balance_factor()):
+            self.assertIn(factor, (-1, 0, +1))
 
     def test_inorder(self):
         node = self.build(AVLTreeNode.balanced_add, (-1, 0, -2, 3, 1, -3, 2))
