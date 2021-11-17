@@ -1,30 +1,97 @@
-from typing import Any, TypeVar, Generic, Optional, Tuple, Callable
-from dataclasses import dataclass
+from typing import Any, Optional, Tuple, Callable
 
 
-@dataclass
 class AVLTreeNode:
-    value: Any
-    pnode: Optional['AVLTreeNode'] = None
-    lnode: Optional['AVLTreeNode'] = None
-    rnode: Optional['AVLTreeNode'] = None
-    height: int = 1
+    def __init__(
+        self,
+        value: Any,
+        pnode: Optional['AVLTreeNode'] = None,
+        lnode: Optional['AVLTreeNode'] = None,
+        rnode: Optional['AVLTreeNode'] = None,
+        height: int = 1
+    ):
+        self.value = value
+        self.pnode = pnode
+        self.lnode = lnode
+        self.rnode = rnode
+        self.height = height
 
-    def add(self, x: Any) -> None:
-        if self.value == x:
-            return
-
-        if x < self.value:
-            if self.lnode:
-                self.lnode.add(x)
+    def add(self, x: Any) -> 'AVLTreeNode':
+        node = self
+        ps = []
+        while x < node.value and node.lnode or x > node.value and node.rnode:
+            if x < node.value:
+                ps.append(-1)
+                assert node.lnode is not None
+                node = node.lnode
             else:
-                self.lnode = AVLTreeNode(x, pnode=self)
+                ps.append(+1)
+                assert node.rnode is not None
+                node = node.rnode
+        if node.value == x:
+            return self
         else:
-            if self.rnode:
-                self.rnode.add(x)
+            if x < node.value:
+                node.lnode = AVLTreeNode(x, pnode=node)
             else:
-                self.rnode = AVLTreeNode(x, pnode=self)
-        self.height = self._calculate_height()
+                node.rnode = AVLTreeNode(x, pnode=node)
+            for d in reversed(ps):
+                node.height = node._height()
+                node = node.pnode
+                if d == -1:
+                    node.lnode = node.lnode._balance()
+                else:
+                    node.rnode = node.rnode._balance()
+            node.height = node._height()
+            return node._balance()
+
+    def _height(self):
+        return self._calculate_height()
+
+    def _balance(self) -> 'AVLTreeNode':
+        factor = self._balance_factor()
+        if factor not in (-2, 2):
+            return self
+        if factor == 2:
+            assert self.lnode is not None
+            factor = self.lnode._balance_factor()
+            if factor == 1:
+                a, b = self, self.lnode
+                a.lnode, b.rnode = b.rnode, a
+                b.pnode, a.pnode = a.pnode, b
+                a.height = a._height()
+                b.height = b._height()
+                return b
+            else:
+                assert self.lnode.rnode is not None
+                a, b, c = self, self.lnode, self.lnode.rnode
+                b.rnode, c.lnode = c.lnode, b
+                a.lnode, c.rnode = c.rnode, a
+                c.pnode, a.pnode, b.pnode = a.pnode, c, c
+                a.height = a._height()
+                b.height = b._height()
+                c.height = c._height()
+                return c
+        else:
+            assert self.rnode is not None
+            factor = self.rnode._balance_factor()
+            if factor == -1:
+                a, b = self, self.rnode
+                a.rnode, b.lnode = b.lnode, a
+                b.pnode, a.pnode = a.pnode, b
+                a.height = a._height()
+                b.height = b._height()
+                return b
+            else:
+                assert self.rnode.lnode is not None
+                a, b, c = self, self.rnode, self.rnode.lnode
+                b.lnode, c.rnode = c.rnode, b
+                a.rnode, c.lnode = c.lnode, a
+                c.pnode, a.pnode, b.pnode = a.pnode, c, c
+                a.height = a._height()
+                b.height = b._height()
+                c.height = c._height()
+                return c
 
     def _lheight(self) -> int:
         return self.lnode and self.lnode.height or 0
@@ -172,6 +239,16 @@ class AVLTreeNode:
             *(self.lnode.inorder(visit) if self.lnode else ()),
             visit(self),
             *(self.rnode.inorder(visit) if self.rnode else ())
+        )
+
+    def preorder(
+        self,
+        visit: Callable[['AVLTreeNode'], Any] = lambda x: x.value
+    ) -> Tuple[Any, ...]:
+        return (
+            visit(self),
+            *(self.lnode.preorder(visit) if self.lnode else ()),
+            *(self.rnode.preorder(visit) if self.rnode else ())
         )
 
     def postorder(
